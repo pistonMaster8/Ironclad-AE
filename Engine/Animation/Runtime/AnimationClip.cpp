@@ -53,7 +53,7 @@ void AnimationClip::SamplePose(f32 time, LocalPose& outPose) const {
         auto& b = outPose.bones[i];
         auto& c = ch[i];
         c.tx = b.translation.x; c.ty = b.translation.y; c.tz = b.translation.z;
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
         c.rx = b.rotation.vector.x; c.ry = b.rotation.vector.y;
         c.rz = b.rotation.vector.z; c.rw = b.rotation.vector.w;
 #else
@@ -84,7 +84,7 @@ void AnimationClip::SamplePose(f32 time, LocalPose& outPose) const {
         if (!ch[i].touched) continue;
         auto& c = ch[i];
         outPose.bones[i].translation = Vec3Make(c.tx, c.ty, c.tz);
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
         outPose.bones[i].rotation = simd_normalize(simd_quaternion(c.rx, c.ry, c.rz, c.rw));
 #else
         outPose.bones[i].rotation = QuatNorm({c.rx, c.ry, c.rz, c.rw});
@@ -111,7 +111,7 @@ static void AddSineRotTrack(AnimationClip& clip, BoneIndex bone,
         f32 t     = (f32)f / fps;
         f32 angle = sinf(kTwoPi * t / periodSec + phaseRad) * amp;
         Quat q    = QuatAxisAngle(Vec3Norm(axis), angle);
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
         tx.AddKey(t, q.vector.x);
         ty.AddKey(t, q.vector.y);
         tz.AddKey(t, q.vector.z);
@@ -169,7 +169,7 @@ static void AddPoseTrack(AnimationClip& clip, BoneIndex bone, Fn fn, f32 dur, f3
         f32 t  = (f32)f / fps;
         f32 ph = (dur > 1e-6f) ? (t / dur) * kTwoPi : 0.f;
         Quat q = QuatNorm(fn(ph));
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
         tx.AddKey(t, q.vector.x); ty.AddKey(t, q.vector.y);
         tz.AddKey(t, q.vector.z); tw.AddKey(t, q.vector.w);
 #else
@@ -323,7 +323,7 @@ AnimationClip MakeSoldierHitReactClip(const Skeleton& skel) {
 
     // Spine jolt backward on X (positive = lean back).
     Quat joltQ = QuatAxisAngle(Vec3Make(1,0,0), Deg2Rad(12.f));
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     addJolt(sp01, AnimationTrack::Channel::RX, joltQ.vector.x);
     addJolt(sp01, AnimationTrack::Channel::RY, joltQ.vector.y);
     addJolt(sp01, AnimationTrack::Channel::RZ, joltQ.vector.z);

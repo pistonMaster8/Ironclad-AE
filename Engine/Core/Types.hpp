@@ -20,6 +20,18 @@ using usize = size_t;
 
 static constexpr u32 kInvalidU32 = std::numeric_limits<u32>::max();
 
+// ─── SIMD backend selection ──────────────────────────────────────────────────
+// Math/animation use Apple's <simd/simd.h> when PFGE_USE_SIMD==1, else a portable
+// scalar Quat/Mat4 path (Windows, Linux). Decoupled from __APPLE__ so the scalar
+// path can be exercised on macOS too (-DPFGE_USE_SIMD=0).
+#if !defined(PFGE_USE_SIMD)
+#  if defined(__APPLE__)
+#    define PFGE_USE_SIMD 1
+#  else
+#    define PFGE_USE_SIMD 0
+#  endif
+#endif
+
 // ─── PFGE_ASSERT ─────────────────────────────────────────────────────────────
 #if defined(NDEBUG)
 #  define PFGE_ASSERT(expr) ((void)(expr))

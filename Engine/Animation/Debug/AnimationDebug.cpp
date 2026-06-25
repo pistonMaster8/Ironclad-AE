@@ -21,7 +21,7 @@ void AnimationDebugRenderer::DrawSkeleton(const Skeleton& skel, const ModelPose&
 
         // Transform to world space.
         auto toWorld = [&](Vec3 v) -> Vec3 {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
             simd_float4 p = simd_mul(worldTransform, Vec4Make(v.x, v.y, v.z, 1.f));
             return p.xyz;
 #else

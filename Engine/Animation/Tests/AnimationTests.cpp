@@ -276,7 +276,7 @@ bool TestAnimationController() {
     const Mat4* mats = ctrl.GetSkinningMatrices();
     bool anyNonIdentity = false;
     for (u16 i = 0; i < ctrl.GetBoneCount(); ++i) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
         Vec3 col0 = mats[i].columns[0].xyz;
         anyNonIdentity |= (fabsf(col0.x - 1.f) > 1e-4f);
 #else

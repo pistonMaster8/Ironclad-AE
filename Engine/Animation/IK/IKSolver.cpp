@@ -6,7 +6,7 @@ namespace IKSolver {
 Vec3 WorldToModelSpace(Vec3 worldPos, const Mat4& unitWorldMatrix) {
     // Invert the unit's world matrix and transform the world point.
     Mat4 invWorld = Mat4Inverse(unitWorldMatrix);
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     simd_float4 p = simd_mul(invWorld, Vec4Make(worldPos.x, worldPos.y, worldPos.z, 1.f));
     return p.xyz;
 #else

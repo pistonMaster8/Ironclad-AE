@@ -3,7 +3,7 @@
 #include <cmath>
 
 // Use Apple's SIMD library when available, fall back to scalar otherwise.
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
 #  include <simd/simd.h>
    using Vec2 = simd_float2;
    using Vec3 = simd_float3;

@@ -24,7 +24,7 @@ static constexpr u16 kHumanoidBoneCount = (u16)HumanoidBone::Count;
 // Math.hpp already provides Vec3/Quat/Mat4, but it doesn't wrap quaternion ops.
 
 inline Quat QuatIdentity() {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return simd_quaternion(0.f, 0.f, 0.f, 1.f);
 #else
     return {0.f, 0.f, 0.f, 1.f};
@@ -32,7 +32,7 @@ inline Quat QuatIdentity() {
 }
 
 inline Quat QuatAxisAngle(Vec3 axis, f32 angle) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return simd_quaternion(angle, axis);
 #else
     f32 ha = angle * 0.5f;
@@ -42,7 +42,7 @@ inline Quat QuatAxisAngle(Vec3 axis, f32 angle) {
 }
 
 inline Quat QuatMul(Quat a, Quat b) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return simd_mul(a, b);
 #else
     return {
@@ -55,7 +55,7 @@ inline Quat QuatMul(Quat a, Quat b) {
 }
 
 inline Quat QuatNorm(Quat q) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return simd_normalize(q);
 #else
     f32 l = sqrtf(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
@@ -65,7 +65,7 @@ inline Quat QuatNorm(Quat q) {
 }
 
 inline Quat QuatSlerp(Quat a, Quat b, f32 t) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return simd_slerp(a, b, t);
 #else
     f32 dot = a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
@@ -83,7 +83,7 @@ inline Quat QuatSlerp(Quat a, Quat b, f32 t) {
 }
 
 inline Vec3 QuatAct(Quat q, Vec3 v) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return simd_act(q, v);
 #else
     Vec3 u{q.x, q.y, q.z};
@@ -100,7 +100,7 @@ inline Vec3 QuatAct(Quat q, Vec3 v) {
 }
 
 inline Quat QuatConjugate(Quat q) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return simd_conjugate(q);
 #else
     return {-q.x, -q.y, -q.z, q.w};
@@ -113,7 +113,7 @@ inline Quat QuatInverse(Quat q) { return QuatConjugate(q); }
 // ─── Platform-portable vector helpers ────────────────────────────────────────
 
 inline Vec3 Vec3Mul(Vec3 a, Vec3 b) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return a * b;
 #else
     return {a.x*b.x, a.y*b.y, a.z*b.z};
@@ -121,7 +121,7 @@ inline Vec3 Vec3Mul(Vec3 a, Vec3 b) {
 }
 
 inline Vec3 Vec3Add(Vec3 a, Vec3 b) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return a + b;
 #else
     return {a.x+b.x, a.y+b.y, a.z+b.z};
@@ -129,7 +129,7 @@ inline Vec3 Vec3Add(Vec3 a, Vec3 b) {
 }
 
 inline Vec3 Vec3Sub(Vec3 a, Vec3 b) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return a - b;
 #else
     return {a.x-b.x, a.y-b.y, a.z-b.z};
@@ -137,7 +137,7 @@ inline Vec3 Vec3Sub(Vec3 a, Vec3 b) {
 }
 
 inline Vec3 Vec3Scale(Vec3 v, f32 s) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return v * s;
 #else
     return {v.x*s, v.y*s, v.z*s};
@@ -158,7 +158,7 @@ inline Quat QuatBetween(Vec3 from, Vec3 to) {
     Vec3 h = Vec3Norm(Vec3Add(from, to));
     Vec3 c = Vec3Cross(from, h);
     f32  w = Vec3Dot(from, h);
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return QuatNorm(simd_quaternion(c.x, c.y, c.z, w));
 #else
     return QuatNorm({c.x, c.y, c.z, w});
@@ -167,7 +167,7 @@ inline Quat QuatBetween(Vec3 from, Vec3 to) {
 
 // Extract rotation quaternion from the upper-left 3×3 of a 4×4 matrix.
 inline Quat QuatFromMat4(Mat4 m) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     // Normalize columns to remove scale before extracting quaternion.
     simd_float3 c0 = simd_normalize(m.columns[0].xyz);
     simd_float3 c1 = simd_normalize(m.columns[1].xyz);
@@ -209,7 +209,7 @@ inline Quat QuatFromMat4(Mat4 m) {
 
 // Invert a TRS (or general non-singular) 4×4 matrix.
 inline Mat4 Mat4Inverse(Mat4 m) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return simd_inverse(m);
 #else
     // Cofactor / adjugate expansion.
@@ -252,7 +252,7 @@ struct BoneTransform {
     }
 
     Mat4 ToMatrix() const {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
         Mat4 m = simd_matrix4x4(rotation);
         m.columns[0] *= scale.x;
         m.columns[1] *= scale.y;
@@ -282,7 +282,7 @@ struct BoneTransform {
 
 // Extract translation (position) from a 4×4 matrix.
 inline Vec3 Mat4GetPosition(const Mat4& m) {
-#if defined(__APPLE__)
+#if PFGE_USE_SIMD
     return m.columns[3].xyz;
 #else
     return Vec3Make(m.m[0][3], m.m[1][3], m.m[2][3]);

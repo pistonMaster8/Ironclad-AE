@@ -2,8 +2,14 @@ cmake_minimum_required(VERSION 3.26)
 
 project(Ironclad
     VERSION 0.1.0
-    LANGUAGES CXX OBJCXX C Swift
+    LANGUAGES CXX C
 )
+
+# Objective-C++ and Swift only exist on Apple (macOS app); Windows uses C++ only.
+if (APPLE)
+    enable_language(OBJCXX)
+    enable_language(Swift)
+endif()
 
 # ─── Global C++ standard ──────────────────────────────────────────────────────
 set(CMAKE_CXX_STANDARD          20)
@@ -186,6 +192,39 @@ if (IRCE_PLATFORM_MACOS)
     )
 
     target_include_directories(IroncladAE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
+
+# ─── Ironclad AE (Windows: GLFW + D3D11 + Dear ImGui) ────────────────────────
+if (WIN32)
+    include(FetchContent)
+    set(GLFW_BUILD_DOCS     OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG        3.4)
+    FetchContent_Declare(imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG        v1.91.5)
+    FetchContent_MakeAvailable(glfw imgui)
+
+    add_executable(IroncladAE
+        Apps/AnimEditorWin/main.cpp
+        Apps/AnimEditorWin/AnimEditorHost.cpp
+        ${imgui_SOURCE_DIR}/imgui.cpp
+        ${imgui_SOURCE_DIR}/imgui_draw.cpp
+        ${imgui_SOURCE_DIR}/imgui_tables.cpp
+        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_dx11.cpp
+    )
+    target_include_directories(IroncladAE PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends)
+    target_link_libraries(IroncladAE PRIVATE
+        EngineCore glfw d3d11 dxgi d3dcompiler ws2_32)
+    target_compile_options(IroncladAE PRIVATE ${IRCE_CXX_WARNINGS})
 endif()
 
 # ─── Tests ────────────────────────────────────────────────────────────────────
