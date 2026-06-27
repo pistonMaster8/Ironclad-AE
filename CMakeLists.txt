@@ -211,6 +211,7 @@ if (WIN32)
     add_executable(IroncladAE
         Apps/AnimEditorWin/main.cpp
         Apps/AnimEditorWin/AnimEditorHost.cpp
+        Apps/AnimEditorWin/SoldierModel.cpp
         ${imgui_SOURCE_DIR}/imgui.cpp
         ${imgui_SOURCE_DIR}/imgui_draw.cpp
         ${imgui_SOURCE_DIR}/imgui_tables.cpp
@@ -225,6 +226,12 @@ if (WIN32)
     target_link_libraries(IroncladAE PRIVATE
         EngineCore glfw d3d11 dxgi d3dcompiler ws2_32)
     target_compile_options(IroncladAE PRIVATE ${IRCE_CXX_WARNINGS})
+
+    # Stage the soldier asset next to the exe so the viewport can load it.
+    add_custom_command(TARGET IroncladAE POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_SOURCE_DIR}/PlaceholderModels/Soldier.glb"
+                "$<TARGET_FILE_DIR:IroncladAE>/Soldier.glb")
 endif()
 
 # ─── Tests ────────────────────────────────────────────────────────────────────
